@@ -1,12 +1,71 @@
 // ============================================================
-// WATCH / PLAYER PAGE — Shirayuki Scrapper API V2
+// WATCH / PLAYER PAGE — Shirayuki Scrapper API V2 (Mobile Optimized)
 // ============================================================
 const WatchPage = (() => {
   let currentAnimeId = null;
-  let currentEpId    = null;  // episodeId string e.g. "one-piece-dk6r?ep=1" — used for UI highlighting
-  let currentEpNum   = null;  // episode NUMBER e.g. 1 — passed to getSources/getServers
+  let currentEpId    = null; 
+  let currentEpNum   = null; 
   let allEpisodes    = [];
   let hls            = null;
+
+  // ── Mobile Responsive Styles ───────────────────────────────
+  // Injected directly to guarantee mobile formatting without needing external CSS changes
+  const mobileStyles = `
+    <style>
+      /* Desktop defaults (Assuming a flex container for watch-page) */
+      .watch-page { display: flex; flex-direction: row; gap: 20px; width: 100%; max-width: 1400px; margin: 0 auto; padding: 15px; box-sizing: border-box; }
+      .player-area { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+      .player-wrap { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; overflow: hidden; position: relative; }
+      .watch-sidebar { width: 320px; flex-shrink: 0; display: flex; flex-direction: column; gap: 15px; }
+      .ep-list { max-height: 500px; overflow-y: auto; scroll-behavior: smooth; }
+      
+      /* 📱 Mobile Breakpoints */
+      @media (max-width: 900px) {
+        .watch-page { 
+          flex-direction: column; 
+          padding: 0; /* Remove padding to let video touch edges on mobile */
+          gap: 15px; 
+        }
+        
+        /* Make sidebar take full width below the player */
+        .watch-sidebar { width: 100%; padding: 0 15px; box-sizing: border-box; }
+        
+        .player-wrap { border-radius: 0; } /* Flush with screen edges */
+        
+        /* Toolbar wrapping and touch-friendly sizing */
+        .player-toolbar { 
+          display: flex; 
+          flex-direction: column; /* Stack controls on very small screens */
+          gap: 12px; 
+          padding: 10px 15px; 
+        }
+        .player-toolbar__left, .player-toolbar__right { 
+          display: flex; 
+          justify-content: space-between; 
+          align-items: center; 
+          width: 100%; 
+          gap: 10px;
+        }
+
+        /* 👆 Touch Targets (Min 44x44px for Apple/Android guidelines) */
+        .tool-btn, .type-btn, .server-select, .ep-search { 
+          min-height: 44px; 
+          font-size: 16px; /* 16px prevents iOS auto-zoom on inputs */
+          padding: 8px 16px;
+        }
+        .tool-btn { min-width: 44px; display: flex; align-items: center; justify-content: center; }
+        
+        /* Episode list height adjustment and touch padding */
+        .ep-list { max-height: 400px; }
+        .ep-item { 
+          padding: 14px 15px; /* Larger tap area */
+          min-height: 48px; 
+          display: flex; 
+          align-items: center;
+        }
+      }
+    </style>
+  `;
 
   // ── Main render ────────────────────────────────────────────
   const render = async ({ id, ep }) => {
@@ -15,6 +74,7 @@ const WatchPage = (() => {
 
     UI.setTitle("Loading…");
     UI.render(`
+      ${mobileStyles}
       <div class="watch-page" id="watch-page">
         <div class="player-area">
           <div class="player-wrap" id="player-wrap">
@@ -23,19 +83,19 @@ const WatchPage = (() => {
           <div class="player-toolbar" id="player-toolbar">
             <div class="player-toolbar__left">
               <button class="tool-btn" id="prev-ep-btn" title="Previous">
-                <svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg>
               </button>
-              <span class="ep-label" id="ep-label">Loading…</span>
+              <span class="ep-label" id="ep-label" style="font-weight: 600; text-align: center; flex: 1;">Loading…</span>
               <button class="tool-btn" id="next-ep-btn" title="Next">
-                <svg viewBox="0 0 24 24"><polyline points="9,18 15,12 9,6"/></svg>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
               </button>
             </div>
             <div class="player-toolbar__right">
-              <div class="type-toggle" id="type-toggle">
+              <div class="type-toggle" id="type-toggle" style="display:flex; gap:5px;">
                 <button class="type-btn type-btn--active" data-type="sub">SUB</button>
                 <button class="type-btn" data-type="dub">DUB</button>
               </div>
-              <select class="server-select" id="server-select">
+              <select class="server-select" id="server-select" style="flex:1; max-width: 150px;">
                 <option value="server-1">Server 1</option>
                 <option value="server-2">Server 2</option>
               </select>
@@ -47,13 +107,13 @@ const WatchPage = (() => {
           <div class="sidebar-anime-info" id="sidebar-info">
             <div class="skeleton-box" style="height:96px;border-radius:8px"></div>
           </div>
-          <div class="sidebar-eps">
-            <div class="sidebar-eps__header">
-              <span>Episodes</span>
+          <div class="sidebar-eps" style="display:flex; flex-direction:column; gap:10px;">
+            <div class="sidebar-eps__header" style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:bold; font-size: 1.1rem;">Episodes</span>
               <input class="ep-search ep-search--sm" id="sidebar-ep-search" type="text" placeholder="Search…">
             </div>
             <div class="ep-list" id="ep-list">
-              ${Array(14).fill('<div class="ep-item ep-item--skel skeleton-box"></div>').join("")}
+              ${Array(14).fill('<div class="ep-item ep-item--skel skeleton-box" style="margin-bottom:8px;"></div>').join("")}
             </div>
           </div>
         </div>
@@ -105,15 +165,9 @@ const WatchPage = (() => {
 
   // ── Helpers ────────────────────────────────────────────────
   const getEpId = (ep) => ep.episodeId || ep.id || ep.number || ep.episodeNo;
-
   const getEpNum = (ep) => ep.number || ep.episodeNo || ep.episode || getEpId(ep);
-
-  const getServerValue = () =>
-    document.getElementById("server-select")?.value || CONFIG.DEFAULT_SERVER;
-
-  const getTypeValue = () =>
-    document.querySelector(".type-btn--active")?.dataset.type || CONFIG.DEFAULT_TYPE;
-
+  const getServerValue = () => document.getElementById("server-select")?.value || CONFIG.DEFAULT_SERVER;
+  const getTypeValue = () => document.querySelector(".type-btn--active")?.dataset.type || CONFIG.DEFAULT_TYPE;
   const reloadStream = () => { if (currentEpId) loadPlayer(); };
 
   const updateEpLabel = () => {
@@ -132,11 +186,12 @@ const WatchPage = (() => {
       const type   = info.stats?.type || info.type || "";
       document.getElementById("sidebar-info").innerHTML = `
         <a class="sidebar-anime-card" href="#anime?id=${encodeURIComponent(id)}"
-           onclick="event.preventDefault();Router.navigate('anime?id=${encodeURIComponent(id)}')">
-          <img src="${poster}" alt="${title}" onerror="this.src='assets/placeholder.svg'">
+           onclick="event.preventDefault();Router.navigate('anime?id=${encodeURIComponent(id)}')"
+           style="display:flex; gap:15px; text-decoration:none; color:inherit; align-items:center;">
+          <img src="${poster}" alt="${title}" onerror="this.src='assets/placeholder.svg'" style="width:60px; height:85px; object-fit:cover; border-radius:6px;">
           <div>
-            <p class="sidebar-anime-title">${title}</p>
-            <p class="sidebar-anime-type">${type}</p>
+            <p class="sidebar-anime-title" style="margin:0; font-weight:bold; font-size:1.1rem; line-height:1.2;">${title}</p>
+            <p class="sidebar-anime-type" style="margin:5px 0 0; opacity:0.7; font-size:0.9rem;">${type}</p>
           </div>
         </a>`;
       UI.setTitle(title);
@@ -162,14 +217,20 @@ const WatchPage = (() => {
       return `
         <div class="ep-item ${active ? "ep-item--active" : ""}"
              onclick="WatchPage._selectById('${epId}')"
-             title="${title}">
-          <span class="ep-item__num">${epNum}</span>
-          <span class="ep-item__title">${title || "Episode " + epNum}</span>
+             title="${title}"
+             style="cursor:pointer; display:flex; gap:10px; border-radius:6px; margin-bottom:5px; transition:background 0.2s;">
+          <span class="ep-item__num" style="min-width:30px; font-weight:bold;">${epNum}</span>
+          <span class="ep-item__title" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${title || "Episode " + epNum}</span>
         </div>`;
     }).join("");
 
+    // 📱 Mobile Optimization: Use smooth scrolling and center the active item
     const el = list.querySelector(".ep-item--active");
-    if (el) el.scrollIntoView({ block: "nearest" });
+    if (el) {
+      setTimeout(() => {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100); // Slight delay ensures DOM is fully painted before scrolling
+    }
   };
 
   const selectEp = (ep) => {
@@ -178,6 +239,12 @@ const WatchPage = (() => {
     updateEpLabel();
     renderEpList(allEpisodes, currentEpId);
     window.history.replaceState(null, "", `#watch?id=${encodeURIComponent(currentAnimeId)}&ep=${currentEpNum}`);
+    
+    // 📱 Mobile Optimization: Scroll back to top of player on episode change
+    if (window.innerWidth <= 900) {
+      document.getElementById("player-wrap").scrollIntoView({ behavior: "smooth" });
+    }
+    
     loadPlayer();
   };
 
@@ -185,48 +252,40 @@ const WatchPage = (() => {
   const loadPlayer = async () => {
     const wrap = document.getElementById("player-wrap");
     if (!wrap || !currentEpNum) return;
-    wrap.innerHTML = `<div class="player-loader"><div class="spinner"></div></div>`;
+    wrap.innerHTML = `<div class="player-loader" style="display:flex; height:100%; justify-content:center; align-items:center;"><div class="spinner">Loading...</div></div>`;
 
     const server   = getServerValue();
     const category = getTypeValue();
 
     try {
-      // getSources needs the episode NUMBER (1, 2, 3…), not the episodeId string
       const raw = await API.getSources(currentAnimeId, currentEpNum, server, category);
-
-      // Actual response shape: { sources: [{ source, embed, type, referer }], tracks, intro, outro }
       const sources = raw.sources || [];
       const tracks  = raw.tracks  || [];
-
-      // The source is an iframe URL (type: "iframe") — embed it directly
       const embedUrl = sources[0]?.embed || sources[0]?.source;
 
       if (!embedUrl) {
-        wrap.innerHTML = `<div class="player-err">
-          <p>No stream found for <strong>${server}</strong> (${category.toUpperCase()}).</p>
-          <small>Try a different server or language type.</small>
+        wrap.innerHTML = `<div class="player-err" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; text-align:center; padding:20px;">
+          <p style="margin:0 0 10px;">No stream found for <strong>${server}</strong> (${category.toUpperCase()}).</p>
+          <small style="opacity:0.7;">Try a different server or language type.</small>
         </div>`;
         return;
       }
 
       initPlayer(wrap, embedUrl, tracks);
     } catch (e) {
-      wrap.innerHTML = `<div class="player-err">
-        <p>Stream unavailable.</p>
-        <small>${e.message}</small>
+      wrap.innerHTML = `<div class="player-err" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; text-align:center; padding:20px;">
+        <p style="margin:0 0 10px;">Stream unavailable.</p>
+        <small style="opacity:0.7;">${e.message}</small>
       </div>`;
     }
   };
 
-  // Sources are iframe embeds — render as <iframe> rather than <video>
   const initPlayer = (wrap, embedUrl, tracks) => {
     if (hls) { hls.destroy(); hls = null; }
-
-    // Try native video first (some servers return direct .m3u8 or .mp4)
     const isDirectMedia = /\.(m3u8|mp4|webm)(\?|$)/i.test(embedUrl);
 
     if (isDirectMedia && window.Hls?.isSupported()) {
-      wrap.innerHTML = `<video id="anime-video" class="video-player" controls playsinline></video>`;
+      wrap.innerHTML = `<video id="anime-video" class="video-player" controls playsinline style="width:100%; height:100%; background:#000;"></video>`;
       const video = document.getElementById("anime-video");
       if (/\.m3u8/i.test(embedUrl)) {
         hls = new Hls({ maxBufferLength: 30 });
@@ -248,7 +307,6 @@ const WatchPage = (() => {
         video.appendChild(track);
       });
     } else {
-      // Iframe embed (Megacloud, anikai iframe, etc.)
       wrap.innerHTML = `
         <iframe
           id="anime-iframe"
@@ -258,13 +316,11 @@ const WatchPage = (() => {
           allow="autoplay; fullscreen; picture-in-picture"
           referrerpolicy="no-referrer"
           frameborder="0"
-          style="width:100%;height:100%;border:none;aspect-ratio:16/9;display:block">
+          style="width:100%; height:100%; border:none; display:block;">
         </iframe>`;
     }
   };
   
-
-  // Public helper for inline onclick in ep-list
   const _selectById = (id) => {
     const ep = allEpisodes.find((e) => String(getEpId(e)) === String(id));
     if (ep) selectEp(ep);

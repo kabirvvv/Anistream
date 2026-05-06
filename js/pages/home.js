@@ -155,32 +155,33 @@ const HomePage = (() => {
     try {
       const data = await API.getHome();
 
-      // Shirayuki home shape:
-      // { spotlightAnimes, trendingAnimes, latestEpisodeAnimes, topUpcomingAnimes,
-      //   topAiringAnimes, mostPopularAnimes, mostFavoriteAnimes, latestCompletedAnimes }
+      // Actual Shirayuki home shape:
+      // { featuredAnimes, topTrending: { now, day, week, month },
+      //   latestUpdates: { all }, quickLists: { newReleases, upcoming, completed } }
       spotIdx = 0;
 
-      const spotItems = data.spotlightAnimes || data.spotlight || [];
-      const trending  = data.trendingAnimes  || data.trending   || [];
+      const spotItems = data.featuredAnimes         || [];
+      const trending  = data.topTrending?.now       || [];
+      const latest    = data.latestUpdates?.all     || [];
+      const upcoming  = data.quickLists?.upcoming   || [];
+      const completed = data.quickLists?.completed  || [];
+      const newRel    = data.quickLists?.newReleases|| [];
 
       const html = [
         spotItems.length ? buildSpotlight(spotItems) : "",
-        trending.length  ? buildTrending(trending) : "",
-        (data.topAiringAnimes    || []).length ? buildSection("Top Airing",          "category?c=top-airing",       data.topAiringAnimes)    : "",
-        (data.mostPopularAnimes  || []).length ? buildSection("Most Popular",        "category?c=most-popular",     data.mostPopularAnimes)  : "",
-        (data.latestEpisodeAnimes|| []).length ? buildSection("Latest Episodes",     "category?c=recently-updated", data.latestEpisodeAnimes): "",
-        (data.mostFavoriteAnimes || []).length ? buildSection("Most Favorited",      "category?c=most-favorite",    data.mostFavoriteAnimes) : "",
-        (data.topUpcomingAnimes  || []).length ? buildSection("Top Upcoming",        "category?c=top-upcoming",     data.topUpcomingAnimes)  : "",
-        (data.latestCompletedAnimes||[]).length? buildSection("Recently Completed",  "category?c=completed",        data.latestCompletedAnimes):"",
+        trending.length  ? buildTrending(trending)   : "",
+        latest.length    ? buildSection("Latest Updates",      "category?c=recently-updated", latest)    : "",
+        newRel.length    ? buildSection("New Releases",        "category?c=tv",               newRel)    : "",
+        upcoming.length  ? buildSection("Upcoming",            "category?c=upcoming",         upcoming)  : "",
+        completed.length ? buildSection("Recently Completed",  "category?c=completed",        completed) : "",
       ].join("");
 
       UI.render(html || `<div class="error-state"><p>No data returned from API.</p></div>`);
       if (spotItems.length) bindSpotlight();
     } catch (e) {
       UI.error(`
-        <strong>Could not reach the anime API.</strong><br>
-        <small>The upstream Shirayuki Scrapper API returned an error (${e.message}).<br>
-        This is usually temporary — please try refreshing in a moment.</small><br><br>
+        <strong>Could not load the home page.</strong><br>
+        <small>${e.message}</small><br><br>
         <button class="btn btn--primary" onclick="HomePage.render()">↺ Retry</button>
       `);
     }

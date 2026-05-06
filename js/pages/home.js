@@ -177,7 +177,12 @@ const HomePage = (() => {
       UI.render(html || `<div class="error-state"><p>No data returned from API.</p></div>`);
       if (spotItems.length) bindSpotlight();
     } catch (e) {
-      UI.error(`Failed to load home page.<br><small>${e.message}</small>`);
+      UI.error(`
+        <strong>Could not reach the anime API.</strong><br>
+        <small>The upstream Shirayuki Scrapper API returned an error (${e.message}).<br>
+        This is usually temporary — please try refreshing in a moment.</small><br><br>
+        <button class="btn btn--primary" onclick="HomePage.render()">↺ Retry</button>
+      `);
     }
   };
 

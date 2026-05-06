@@ -4,6 +4,7 @@
 const WatchPage = (() => {
   let currentAnimeId = null;
   let currentEpId    = null;
+  let currentEpNum   = null;   // episode number passed to getSources as &ep=
   let allEpisodes    = [];
   let hls            = null;
 
@@ -35,9 +36,9 @@ const WatchPage = (() => {
                 <button class="type-btn" data-type="dub">DUB</button>
               </div>
               <select class="server-select" id="server-select">
-                <option value="hd-1">HD-1</option>
-                <option value="hd-2">HD-2</option>
-                <option value="hd-3">HD-3</option>
+                <option value="server-1">Server 1</option>
+                <option value="server-2">Server 2</option>
+                <option value="server-3">Server 3</option>
               </select>
             </div>
           </div>
@@ -92,7 +93,9 @@ const WatchPage = (() => {
     await loadEpisodeList(id);
     const targetEp = ep || (allEpisodes[0] ? getEpId(allEpisodes[0]) : null);
     if (targetEp) {
-      currentEpId = targetEp;
+      currentEpId  = targetEp;
+      // ep from URL is already a number; otherwise derive it from the first episode object
+      currentEpNum = ep ? ep : (allEpisodes[0] ? getEpNum(allEpisodes[0]) : null);
       updateEpLabel();
       renderEpList(allEpisodes, targetEp);
       loadPlayer();
@@ -105,7 +108,7 @@ const WatchPage = (() => {
   const getEpNum = (ep) => ep.number || ep.episodeNo || ep.episode || getEpId(ep);
 
   const getServerValue = () =>
-    document.getElementById("server-select")?.value || CONFIG.DEFAULT_SERVER;
+    document.getElementById("server-select")?.value || "server-1";
 
   const getTypeValue = () =>
     document.querySelector(".type-btn--active")?.dataset.type || CONFIG.DEFAULT_TYPE;
@@ -169,7 +172,8 @@ const WatchPage = (() => {
   };
 
   const selectEp = (ep) => {
-    currentEpId = getEpId(ep);
+    currentEpId  = getEpId(ep);
+    currentEpNum = getEpNum(ep);
     updateEpLabel();
     renderEpList(allEpisodes, currentEpId);
     window.history.replaceState(null, "", `#watch?id=${encodeURIComponent(currentAnimeId)}&ep=${currentEpId}`);
@@ -186,7 +190,7 @@ const WatchPage = (() => {
     const category = getTypeValue();
 
     try {
-      const raw = await API.getSources(currentAnimeId, currentEpId, server, category);
+      const raw = await API.getSources(currentAnimeId, currentEpNum, server, category);
       // Shirayuki sources shape:
       // { sources: [{url, isM3U8}], tracks: [{file, label, kind, default}], intro, outro }
       const sources = raw.sources || raw.streamingLink || [];

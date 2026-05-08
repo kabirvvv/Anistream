@@ -1,14 +1,52 @@
+
 // ============================================================
-// APP — Shirayuki Scrapper API V2
+// APP — RezeMoe
 // ============================================================
 document.addEventListener("DOMContentLoaded", () => {
 
-  // ── Navbar search with live suggestions ───────────────────
-  const navSearch = document.getElementById("nav-search");
-  const navInput  = document.getElementById("nav-search-input");
-  const navBtn    = document.getElementById("nav-search-btn");
-  const suggestBox= document.getElementById("search-suggestions");
+  // ── Navbar: hide on scroll down, show on scroll up ────────
+  const navbar = document.querySelector(".navbar");
+  let lastScrollY = 0;
+  let ticking = false;
+  window.addEventListener("scroll", () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        const sy = window.scrollY;
+        if (sy > lastScrollY && sy > 80) {
+          navbar?.classList.add("navbar--hidden");
+        } else {
+          navbar?.classList.remove("navbar--hidden");
+        }
+        navbar?.classList.toggle("navbar--scrolled", sy > 20);
+        lastScrollY = sy;
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
 
+  // ── Reveal on scroll (IntersectionObserver) ───────────────
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("visible");
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: "0px 0px -40px 0px" });
+
+  // Observe new elements whenever content changes
+  window.observeReveal = () => {
+    document.querySelectorAll(".reveal:not(.visible)").forEach((el) => {
+      revealObserver.observe(el);
+    });
+  };
+
+  // ── Navbar search with live suggestions ───────────────────
+  const navSearch  = document.getElementById("nav-search");
+  const navInput   = document.getElementById("nav-search-input");
+  const navBtn     = document.getElementById("nav-search-btn");
+  const suggestBox = document.getElementById("search-suggestions");
   let suggestTimer = null;
 
   navInput?.addEventListener("input", () => {
@@ -39,23 +77,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const fetchSuggestions = async (q) => {
     try {
       const raw   = await API.searchSuggest(q);
-      // shape: { suggestions: [{id, name, poster, type, ...}] }
       const items = raw.suggestions || raw.results || (Array.isArray(raw) ? raw : []);
       if (!items.length) { hideSuggestions(); return; }
 
       suggestBox.innerHTML = items.slice(0, 8).map((s) => {
-        const id     = s.id || s.animeId || "";
-        const title  = s.name || s.title || "";
-        const poster = s.poster || s.image || "";
-        const type   = s.type   || "";
-        const year   = s.releaseDate || s.year || "";
+        const id     = s.id    || s.animeId || "";
+        const title  = s.name  || s.title   || "";
+        const poster = s.poster|| s.image   || "";
+        const type   = s.type  || "";
         return `
           <div class="suggest-item"
                onclick="Router.navigate('watch?id=${encodeURIComponent(id)}');hideSuggestions()">
             <img src="${poster}" alt="${title}" onerror="this.src='assets/placeholder.svg'">
             <div class="suggest-meta">
               <span class="suggest-title">${title}</span>
-              <span class="suggest-sub">${[type, year].filter(Boolean).join(" · ")}</span>
+              <span class="suggest-sub">${type}</span>
             </div>
           </div>`;
       }).join("");
@@ -81,6 +117,46 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   );
 
+  // ── Ripple effect on buttons ───────────────────────────────
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".btn");
+    if (!btn) return;
+    const rect   = btn.getBoundingClientRect();
+    const ripple = document.createElement("span");
+    const size   = Math.max(rect.width, rect.height);
+    ripple.style.cssText = `
+      position:absolute;border-radius:50%;
+      width:${size}px;height:${size}px;
+      left:${e.clientX - rect.left - size/2}px;
+      top:${e.clientY  - rect.top  - size/2}px;
+      background:rgba(255,255,255,0.18);
+      transform:scale(0);animation:ripple 0.55s ease-out;
+      pointer-events:none;
+    `;
+    if (!document.getElementById("ripple-style")) {
+      const s = document.createElement("style");
+      s.id = "ripple-style";
+      s.textContent = "@keyframes ripple{to{transform:scale(2.5);opacity:0}}";
+      document.head.appendChild(s);
+    }
+    btn.style.position = "relative";
+    btn.style.overflow = "hidden";
+    btn.appendChild(ripple);
+    ripple.addEventListener("animationend", () => ripple.remove());
+  });
+
+  // ── Page transition wrapper ────────────────────────────────
+  const mainContent = document.getElementById("main-content");
+  const origRender  = UI.render.bind(UI);
+  UI.render = (html) => {
+    mainContent?.classList.remove("page-enter");
+    void mainContent?.offsetWidth; // reflow
+    mainContent?.classList.add("page-enter");
+    origRender(html);
+    // Run reveal observer after paint
+    requestAnimationFrame(() => requestAnimationFrame(() => window.observeReveal()));
+  };
+
   // ── Active nav highlighting ────────────────────────────────
   const highlightNav = (path) => {
     document.querySelectorAll(".nav-link").forEach((l) =>
@@ -89,22 +165,25 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // ── Routes ─────────────────────────────────────────────────
-  Router.on("home",     (p) => { highlightNav("home");     HomePage.render(p);    });
-  Router.on("anime",    (p) => { highlightNav("anime");    AnimePage.render(p);   });
-  Router.on("watch",    (p) => { highlightNav("watch");    WatchPage.render(p);   });
-  Router.on("search",   (p) => { highlightNav("search");   SearchPage.render(p);  });
-  Router.on("category", (p) => { highlightNav("category"); CategoryPage.render(p);});
-  Router.on("genre",    (p) => { highlightNav("category"); GenrePage.render(p);   });
-  Router.on("schedule", (p) => { highlightNav("schedule"); SchedulePage.render(p);});
-  Router.on("browse",   (p) => { highlightNav("browse");   FilterPage.render(p);  });
+  Router.on("home",     (p) => { highlightNav("home");     HomePage.render(p);     });
+  Router.on("anime",    (p) => { highlightNav("anime");    AnimePage.render(p);    });
+  Router.on("watch",    (p) => { highlightNav("watch");    WatchPage.render(p);    });
+  Router.on("search",   (p) => { highlightNav("search");   SearchPage.render(p);   });
+  Router.on("category", (p) => { highlightNav("category"); CategoryPage.render(p); });
+  Router.on("genre",    (p) => { highlightNav("category"); GenrePage.render(p);    });
+  Router.on("schedule", (p) => { highlightNav("schedule"); SchedulePage.render(p); });
+  Router.on("browse",   (p) => { highlightNav("browse");   FilterPage.render(p);   });
 
   Router.on("404", () =>
     UI.render(`<div class="error-state">
       <div class="error-icon">404</div>
       <h2>Page Not Found</h2>
-      <button class="btn btn--primary" onclick="Router.navigate('home')">Go Home</button>
+      <p>The page you're looking for doesn't exist.</p>
+      <button class="btn btn--primary" onclick="Router.navigate('home')">← Go Home</button>
     </div>`)
   );
 
   Router.dispatch();
 });
+JSEOF
+echo "Done"

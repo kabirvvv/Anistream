@@ -83,7 +83,7 @@ const WatchPage = (() => {
           <div class="player-toolbar" id="player-toolbar">
             <div class="player-toolbar__left">
               <button class="tool-btn" id="prev-ep-btn" title="Previous">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg>
+                <svg viewBox="0 0 24 24" width="5" height="5" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg>
               </button>
               <span class="ep-label" id="ep-label" style="font-weight: 600; text-align: center; flex: 1;">Loading…</span>
               <button class="tool-btn" id="next-ep-btn" title="Next">

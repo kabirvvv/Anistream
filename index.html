@@ -1,17 +1,19 @@
+cat > /home/claude/anistream-v7/index.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#07060f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>RezeMoe — Watch Anime Free</title>
   <meta name="description" content="Stream anime online for free on RezeMoe. Watch subbed and dubbed episodes in HD.">
-  <meta name="theme-color" content="#0a0a0f">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236a0dad'/><polygon points='10,7 26,16 10,25' fill='%23f4c842'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- HLS.js for adaptive streaming -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.12/hls.min.js"></script>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="CSS/style.css">
 </head>
 <body>
 
@@ -22,11 +24,11 @@
   </a>
 
   <ul class="nav-links" id="nav-links">
-    <li><a class="nav-link" data-route="home"     href="#home"              onclick="event.preventDefault();Router.navigate('home')">Home</a></li>
-    <li><a class="nav-link" data-route="category" href="#category?c=top-airing"   onclick="event.preventDefault();Router.navigate('category?c=top-airing')">Top Airing</a></li>
-    <li><a class="nav-link" data-route="category" href="#category?c=most-popular" onclick="event.preventDefault();Router.navigate('category?c=most-popular')">Popular</a></li>
-    <li><a class="nav-link" data-route="browse"   href="#browse"            onclick="event.preventDefault();Router.navigate('browse')">Browse</a></li>
-    <li><a class="nav-link" data-route="schedule" href="#schedule"          onclick="event.preventDefault();Router.navigate('schedule')">Schedule</a></li>
+    <li><a class="nav-link" data-route="home"     href="#home"                     onclick="event.preventDefault();Router.navigate('home')">Home</a></li>
+    <li><a class="nav-link" data-route="category" href="#category?c=top-airing"    onclick="event.preventDefault();Router.navigate('category?c=top-airing')">Top Airing</a></li>
+    <li><a class="nav-link" data-route="category" href="#category?c=most-popular"  onclick="event.preventDefault();Router.navigate('category?c=most-popular')">Popular</a></li>
+    <li><a class="nav-link" data-route="browse"   href="#browse"                   onclick="event.preventDefault();Router.navigate('browse')">Browse</a></li>
+    <li><a class="nav-link" data-route="schedule" href="#schedule"                 onclick="event.preventDefault();Router.navigate('schedule')">Schedule</a></li>
   </ul>
 
   <div class="nav-search" id="nav-search">
@@ -47,17 +49,24 @@
 <main id="main-content">
   <div class="loading-state">
     <div class="spinner"></div>
-    <p class="loading-msg">Starting up…</p>
+    <p class="loading-msg">Loading RezeMoe…</p>
   </div>
 </main>
+
 <!-- ── FOOTER ─────────────────────────────────────────────── -->
 <footer class="footer">
   <div class="footer-image-container">
-    <img src="/rezemoe-footer.png" 
- 
+    <img src="/rezemoe-footer.png" alt="RezeMoe" class="footer-art">
+  </div>
+  <p>
+    RezeMoe — powered by
+    <a href="https://github.com/Anandadevnath/Shirayuki-Scrapper-API-V2" target="_blank" rel="noopener">Shirayuki Scrapper API V2</a>.
+    For educational purposes only. No content is hosted on this server.
+  </p>
 </footer>
 
 <div id="toast-container"></div>
+
 <!-- ── SCRIPTS ────────────────────────────────────────────── -->
 <script src="js/config.js"></script>
 <script src="js/api.js"></script>

@@ -43,7 +43,8 @@ const CategoryPage = (() => {
       </div>`);
 
     try {
-      const raw   = await API.getCategory(c, p);
+      const apiSlug = SLUG_MAP[c] || c;
+const raw = await API.getCategory(apiSlug, p);
       const items = raw.animes || raw.data || (Array.isArray(raw) ? raw : []);
       const total = raw.totalPages || 1;
 

@@ -279,7 +279,8 @@ const WatchPage = (() => {
     const category = getTypeValue();
 
     try {
-      const embedUrl = `https://reanime.to/api/flix/${currentAnimeId}/${currentEpNum}`;
+      const numericId = currentAnimeId.split('-').pop();
+      const embedUrl = `https://reanime.to/api/flix/${numericId}/${currentEpNum}`;
       initPlayer(wrap, embedUrl, []);
     } catch (e) {
       wrap.innerHTML = `<div class="player-err" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; text-align:center; padding:20px;">
@@ -339,4 +340,3 @@ const WatchPage = (() => {
 })();
 
 window.WatchPage = WatchPage;
-        

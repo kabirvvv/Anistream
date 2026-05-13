@@ -266,11 +266,17 @@ const WatchPage = (() => {
     loadPlayer();
   };
 
+  // ── Anikoto episode cache (avoid re-fetching on every episode switch) ────
+  let anikotoEpisodesCache = null;
+  let anikotoCachedId = null;
+
   // ── Player ─────────────────────────────────────────────────
   const loadPlayer = async () => {
     const wrap = document.getElementById("player-wrap");
     if (!wrap || !currentEpNum) return;
     wrap.innerHTML = `<div class="player-loader" style="display:flex; height:100%; justify-content:center; align-items:center;"><div class="spinner">Loading...</div></div>`;
+
+    const category = getTypeValue();
 
     try {
       const embedUrl = `https://reanime.to/api/flix/${currentAnimeId}/${currentEpNum}`;

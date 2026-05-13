@@ -113,3 +113,4 @@ const FilterPage = (() => {
 })();
 
 window.FilterPage = FilterPage;
+                    

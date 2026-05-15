@@ -124,17 +124,9 @@ const AnimePage = (() => {
       document.getElementById("ep-list-btn").onclick = () =>
         document.getElementById("episodes-section").scrollIntoView({ behavior: "smooth" });
 
-      document.getElementById("watch-btn").onclick = async () => {
-        try {
-          const epData = await API.getEpisodes(id);
-          const eps = epData.episodes || epData || [];
-          const first = eps[0];
-          if (first) Router.navigate(`watch?id=${encodeURIComponent(id)}&ep=${first.episodeId || first.id || first.number}`);
-          else Router.navigate(`watch?id=${encodeURIComponent(id)}`);
-        } catch {
-          Router.navigate(`watch?id=${encodeURIComponent(id)}`);
-        }
-      };
+      // Navigate to ep=1; reanime only needs anilist id + episode number
+      document.getElementById("watch-btn").onclick = () =>
+        Router.navigate(`watch?id=${encodeURIComponent(id)}&ep=1`);
 
       loadEpisodes(id, document.getElementById("episodes-section"));
     } catch (e) {
@@ -172,12 +164,11 @@ const AnimePage = (() => {
 
   const renderGrid = (episodes, animeId) =>
     episodes.map((ep) => {
-      const epId  = ep.episodeId || ep.id || ep.number || ep.episodeNo;
-      const epNum = ep.number    || ep.episodeNo || ep.episode || epId;
-      const title = ep.title || ep.name || "";
+      const epNum = ep.number || ep.episodeNo || ep.id;
+      const title = ep.title || "";
       return `
-        <a class="ep-btn" href="#watch?id=${encodeURIComponent(animeId)}&ep=${epId}"
-           onclick="event.preventDefault();Router.navigate('watch?id=${encodeURIComponent(animeId)}&ep=${epId}')"
+        <a class="ep-btn" href="#watch?id=${encodeURIComponent(animeId)}&ep=${epNum}"
+           onclick="event.preventDefault();Router.navigate('watch?id=${encodeURIComponent(animeId)}&ep=${epNum}')"
            title="${title}">
           ${epNum}
         </a>`;
@@ -187,4 +178,4 @@ const AnimePage = (() => {
 })();
 
 window.AnimePage = AnimePage;
-                    
+                  

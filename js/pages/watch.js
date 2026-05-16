@@ -181,7 +181,7 @@ const updateEpLabel = () => {
       <iframe
         id="anime-iframe"
         class="video-player"
-        src="https://reanime.to/${encodeURIComponent(currentAnimeId)}/${currentEpNum}"
+        src="https://reanime.to/api/flix/${currentAnimeId}/${currentEpNum}"
         allowfullscreen
         allow="autoplay; fullscreen; picture-in-picture"
         referrerpolicy="no-referrer"

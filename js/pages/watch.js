@@ -173,24 +173,38 @@ const updateEpLabel = () => {
   };
 
   // ── Player — reanime uses AniList ID + episode number only ──
-  const loadPlayer = () => {
+  const loadPlayer = async () => {
     const wrap = document.getElementById("player-wrap");
     if (!wrap || !currentEpNum) return;
     wrap.innerHTML = `<div class="player-loader" style="display:flex; height:100%; justify-content:center; align-items:center;"><div class="spinner">Loading...</div></div>`;
 
-    const embedUrl = `https://reanime.to/api/flix/${encodeURIComponent(currentAnimeId)}/${currentEpNum}`;
+    try {
+      const res  = await fetch(`https://reanime.to/api/flix/${encodeURIComponent(currentAnimeId)}/${currentEpNum}`);
+      const json = await res.json();
 
-    wrap.innerHTML = `
-      <iframe
-        id="anime-iframe"
-        class="video-player"
-        src="${embedUrl}"
-        allowfullscreen
-        allow="autoplay; fullscreen; picture-in-picture"
-        referrerpolicy="no-referrer"
-        frameborder="0"
-        style="width:100%; height:100%; border:none; display:block;">
-      </iframe>`;
+      if (!json.success || !json.servers?.length) throw new Error("No servers returned");
+
+      // Prefer sub server, fall back to first available
+      const server = json.servers.find(s => s.dataType === "sub") || json.servers[0];
+      const embedUrl = server.dataLink;
+
+      wrap.innerHTML = `
+        <iframe
+          id="anime-iframe"
+          class="video-player"
+          src="${embedUrl}"
+          allowfullscreen
+          allow="autoplay; fullscreen; picture-in-picture"
+          referrerpolicy="no-referrer"
+          frameborder="0"
+          style="width:100%; height:100%; border:none; display:block;">
+        </iframe>`;
+    } catch (e) {
+      wrap.innerHTML = `<div style="display:flex; height:100%; justify-content:center; align-items:center; color:#fff; flex-direction:column; gap:10px;">
+        <p>Failed to load stream.</p>
+        <small style="opacity:0.6;">${e.message}</small>
+      </div>`;
+    }
   };
 
   const _selectByNum = (num) => {
@@ -202,3 +216,4 @@ const updateEpLabel = () => {
 })();
 
 window.WatchPage = WatchPage;
+        

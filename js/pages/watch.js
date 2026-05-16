@@ -180,7 +180,7 @@ const updateEpLabel = () => {
 
     try {
       const apiUrl = `https://reanime.to/api/flix/${encodeURIComponent(currentAnimeId)}/${currentEpNum}`;
-      const res  = await fetch(`https://corsproxy.io/?${encodeURIComponent(apiUrl)}`);
+      const res  = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`);
       const raw  = await res.text();
       console.log("[reanime raw]", raw);
 

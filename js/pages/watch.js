@@ -179,7 +179,8 @@ const updateEpLabel = () => {
     wrap.innerHTML = `<div class="player-loader" style="display:flex; height:100%; justify-content:center; align-items:center;"><div class="spinner">Loading...</div></div>`;
 
     try {
-      const res  = await fetch(`https://reanime.to/api/flix/${encodeURIComponent(currentAnimeId)}/${currentEpNum}`);
+      const apiUrl = `https://reanime.to/api/flix/${encodeURIComponent(currentAnimeId)}/${currentEpNum}`;
+      const res  = await fetch(`https://corsproxy.io/?${encodeURIComponent(apiUrl)}`);
       const json = await res.json();
 
       if (!json.success || !json.servers?.length) throw new Error("No servers returned");
@@ -216,4 +217,3 @@ const updateEpLabel = () => {
 })();
 
 window.WatchPage = WatchPage;
-        

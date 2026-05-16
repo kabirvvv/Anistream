@@ -173,48 +173,21 @@ const updateEpLabel = () => {
   };
 
   // ── Player — reanime uses AniList ID + episode number only ──
-  const loadPlayer = async () => {
+  const loadPlayer = () => {
     const wrap = document.getElementById("player-wrap");
     if (!wrap || !currentEpNum) return;
-    wrap.innerHTML = `<div class="player-loader" style="display:flex; height:100%; justify-content:center; align-items:center;"><div class="spinner">Loading...</div></div>`;
 
-    try {
-      const apiUrl = `https://reanime.to/api/flix/${encodeURIComponent(currentAnimeId)}/${currentEpNum}`;
-      const res  = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`);
-      const raw  = await res.text();
-      console.log("[reanime raw]", raw);
-
-      let json;
-      try { json = JSON.parse(raw); } catch { throw new Error("Invalid JSON: " + raw.slice(0, 200)); }
-
-      // Handle allorigins-style wrapper { contents: "..." }
-      if (json.contents) json = JSON.parse(json.contents);
-
-      console.log("[reanime json]", json);
-
-      if (!json.success || !json.servers?.length) throw new Error("No servers returned: " + JSON.stringify(json));
-
-      // Prefer sub server, fall back to first available
-      const server = json.servers.find(s => s.dataType === "sub") || json.servers[0];
-      const embedUrl = server.dataLink;
-
-      wrap.innerHTML = `
-        <iframe
-          id="anime-iframe"
-          class="video-player"
-          src="${embedUrl}"
-          allowfullscreen
-          allow="autoplay; fullscreen; picture-in-picture"
-          referrerpolicy="no-referrer"
-          frameborder="0"
-          style="width:100%; height:100%; border:none; display:block;">
-        </iframe>`;
-    } catch (e) {
-      wrap.innerHTML = `<div style="display:flex; height:100%; justify-content:center; align-items:center; color:#fff; flex-direction:column; gap:10px;">
-        <p>Failed to load stream.</p>
-        <small style="opacity:0.6;">${e.message}</small>
-      </div>`;
-    }
+    wrap.innerHTML = `
+      <iframe
+        id="anime-iframe"
+        class="video-player"
+        src="https://reanime.to/embed/${encodeURIComponent(currentAnimeId)}/${currentEpNum}"
+        allowfullscreen
+        allow="autoplay; fullscreen; picture-in-picture"
+        referrerpolicy="no-referrer"
+        frameborder="0"
+        style="width:100%; height:100%; border:none; display:block;">
+      </iframe>`;
   };
 
   const _selectByNum = (num) => {

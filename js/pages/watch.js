@@ -181,12 +181,12 @@ const updateEpLabel = () => {
       <iframe
         id="anime-iframe"
         class="video-player"
-        src="https://reanime.to/embed/${encodeURIComponent(currentAnimeId)}/${currentEpNum}"
+        src="https://reanime.to/${encodeURIComponent(currentAnimeId)}/${currentEpNum}"
         allowfullscreen
         allow="autoplay; fullscreen; picture-in-picture"
         referrerpolicy="no-referrer"
         frameborder="0"
-        style="width:100%; height:100%; border:none; display:block;">
+        style="width:100%;height:100%;border:none;display:block;">
       </iframe>`;
   };
 

@@ -370,7 +370,7 @@ const API = (() => {
   const getSources     = () => Promise.resolve({});
   const getProducer    = (name, page) => getCategory("most-popular", page);
   const getAZList      = (sort, page)  => getCategory("most-popular", page);
-  const PROXY_BASE     = "https://lingering-thunder-953e.kabirv338.workers.dev";
+  const PROXY_BASE     = "https://rezemoe-proxy.kabirv338.workers.dev";
   const proxy          = (url) => `${PROXY_BASE}?url=${encodeURIComponent(url)}`;
 
   return {
